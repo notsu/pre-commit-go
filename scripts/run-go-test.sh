@@ -4,6 +4,11 @@
 #
 set -e
 
-exec 5>&1
-output="$(go test -l -w "$@" | tee /dev/fd/5)"
-[[ -z "$output" ]]
+# run tests
+failed_tests="$(go test | grep "FAIL:" | awk '{print $3}')"
+if test -n "$failed_tests" ; then
+  for failed in $failed_tests; do
+    echo "git pre-commit check failed: test failed: $failed"
+  done
+  exit 1
+fi
